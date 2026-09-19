@@ -2,9 +2,19 @@ pipeline {
   agent {
     docker {
       image 'vishnu827/jenkins-java-sonar-cicd:latest'
+      alwaysPull true
       args '--user root -v /var/run/docker.sock:/var/run/docker.sock' // mount Docker socket to access the host's Docker daemon
     }
   }
+  stages {
+    stage('Check Environment') {
+      steps {
+        sh '''
+          java -version
+          mvn -version
+        '''
+      }
+    }
   stages {
     stage('Checkout') {
       steps {
