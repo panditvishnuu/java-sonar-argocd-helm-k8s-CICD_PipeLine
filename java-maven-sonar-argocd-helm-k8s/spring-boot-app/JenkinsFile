@@ -60,33 +60,43 @@ pipeline {
           GIT_USER_NAME = "panditvishnuu"
       }
 
+    stage('Update Deployment File') {
+      environment {
+        GIT_REPO_NAME = 'java-sonar-argocd-helm-k8s-CICD_PipeLine'
+        GIT_USER_NAME = 'panditvishnuu'
+      }
       steps {
-        withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
+        echo '=== Starting Update Deployment File ==='
+        withCredentials([
+          string(
+            credentialsId: 'github',
+            variable: 'GITHUB_TOKEN'
+          )
+        ]) {
           sh '''
-            set -e
-              echo "=== Configuring Git ==="
-              git config user.email "vishnusharma2k03@gmail.com"
-              git config user.name "Vishnu"
-
-              echo "=== Current branch/status ==="
-              git status
-              git branch -a
-
-              echo "=== Updating deployment image tag ==="
-              sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" \
-              java-maven-sonar-argocd-helm-k8s/spring-boot-app-manifests/deployment.yml
-
-              echo "=== Git diff ==="
-              git diff
-
-              echo "=== Committing ==="
-              git add java-maven-sonar-argocd-helm-k8s/spring-boot-app-manifests/deployment.yml
-              git commit -m "Update deployment image to version ${BUILD_NUMBER}"
-              
-              echo "=== Pushing to master ==="
-              git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME}.git HEAD:master
+            echo "=== Git Configuration ==="
+            git config user.email "vishnusharma2k03@gmail.com"
+            git config user.name "Vishnu"
+            echo "=== Current Git Status ==="
+            git status
+            echo "=== Updating Image Tag ==="
+            sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" \
+            java-maven-sonar-argocd-helm-k8s/spring-boot-app-manifests/deployment.yml
+            echo "=== Checking Changes ==="
+            git diff -- java-maven-sonar-argocd-helm-k8s/spring-boot-app-manifests/deployment.yml
+            git add \
+            java-maven-sonar-argocd-helm-k8s/spring-boot-app-manifests/deployment.yml
+            echo "=== Creating Commit ==="
+            git commit \
+            -m "Update deployment image to version ${BUILD_NUMBER}" || echo "Nothing to commit"
+            echo "=== Pushing to GitHub ==="
+            git push \
+            https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME}.git \
+            HEAD:master
+            echo "=== Push Successful ==="
           '''
         }
+        echo '=== Update Deployment File Completed ==='
       }
     }
   }
