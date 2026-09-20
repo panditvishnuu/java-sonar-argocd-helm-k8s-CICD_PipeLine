@@ -1,12 +1,29 @@
-FROM maven:3.9-eclipse-temurin-21
+# syntax=docker/dockerfile:1
 
-USER root
+# Build the Spring Boot executable JAR with Maven 3.9 and Temurin JDK 21.
+# The project targets Java 17, which is supported by JDK 21.
+FROM maven:3.9-eclipse-temurin-21 AS build
 
-RUN apt-get update \
-    && apt-get install -y docker.io git \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+WORKDIR /workspace
 
-RUN java -version && mvn -version
+# Copy the Maven descriptor first so dependency downloads are cached between builds.
+COPY pom.xml ./
+RUN mvn --batch-mode --no-transfer-progress dependency:go-offline
 
-USER root
+# Copy application sources and create the executable Spring Boot JAR.
+COPY src ./src
+RUN mvn --batch-mode --no-transfer-progress clean package -DskipTests
+
+# Run only the built application; Maven and the source code are excluded from the final image.
+FROM eclipse-temurin:21-jre
+
+WORKDIR /app
+
+RUN useradd --system --uid 10001 --create-home spring
+COPY --from=build /workspace/target/spring-boot-web.jar app.jar
+
+USER spring
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

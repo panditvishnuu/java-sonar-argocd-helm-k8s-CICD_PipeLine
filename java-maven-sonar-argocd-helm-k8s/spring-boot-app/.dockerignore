@@ -1,0 +1,11 @@
+# Docker builds the JAR inside the build stage, so local build output is not needed.
+target/
+
+# Source-control and CI/editor metadata do not belong in the image build context.
+.git/
+.gitignore
+Dockerfile*
+JenkinsFile
+.idea/
+.vscode/
+*.iml
