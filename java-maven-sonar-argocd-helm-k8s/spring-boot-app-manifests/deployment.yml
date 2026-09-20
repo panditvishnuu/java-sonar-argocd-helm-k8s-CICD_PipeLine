@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
       - name: spring-boot-app
-        image: vishnu827/jenkins-java-sonar-cicd:replaceImageTag
+        image: vishnu827/jenkins-java-sonar-cicd:15
         ports:
         - containerPort: 8080
